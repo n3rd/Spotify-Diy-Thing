@@ -7,12 +7,16 @@ class SpotifyDisplay {
 
     virtual void showDefaultScreen() = 0;
 
+    virtual void showDeviceScreen() = 0;
+    virtual void drawDevice(int index, const char* name, bool active) = 0;
+
     // Track related
     virtual void displayTrackProgress(long progress, long duration) = 0;
     virtual void printCurrentlyPlayingToScreen(CurrentlyPlaying currentlyPlaying) = 0;
 
     //Probably Touch screen related
     virtual void checkForInput() =0;
+    virtual int checkDeviceInput() =0;
 
     //Image Related
     virtual void clearImage()= 0;

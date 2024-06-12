@@ -25,7 +25,7 @@
 #define YELLOW_DISPLAY // Default to Yellow Display for display type
 #endif
 
-#define NFC_ENABLED 1
+//#define NFC_ENABLED 1
 
 // This causes issues in certain circumstances e.g. Play an album and let it auto play to related songs
 bool writeContextToNfc = true;
@@ -74,7 +74,7 @@ WiFiClientSecure client;
 //------- Replace the following! ------
 
 // Country code, including this is advisable
-#define SPOTIFY_MARKET "IE"
+#define SPOTIFY_MARKET "NL"
 //------- ---------------------- ------
 
 // ----------------------------
@@ -211,8 +211,6 @@ void loop()
 {
   drd->loop();
 
-  spotifyDisplay->checkForInput();
-
   bool forceUpdate = false;
 
 #ifdef NFC_ENABLED
@@ -227,7 +225,19 @@ void loop()
 
 #endif
 
-  updateCurrentlyPlaying(forceUpdate);
+  if(!devicesStatus) {
+    updateCurrentlyPlaying(forceUpdate);
 
-  updateProgressBar();
+    updateProgressBar();
+
+    spotifyDisplay->checkForInput();
+  } else {
+    int deviceIndex = spotifyDisplay->checkDeviceInput();
+    if(deviceIndex > -1) {
+      selectDevice(deviceIndex);
+      spotifyDisplay->showDefaultScreen();
+      devicesStatus = false;
+      updateCurrentlyPlaying(true);
+    }
+  }
 }

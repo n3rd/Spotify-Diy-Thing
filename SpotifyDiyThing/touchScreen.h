@@ -13,6 +13,8 @@
 
 bool previousTrackStatus = false;
 bool nextTrackStatus = false;
+bool devicesStatus = false;
+int deviceIndex = -1;
 
 //SPIClass mySpi = SPIClass(HSPI);
 //
@@ -32,6 +34,7 @@ void touchSetup(SpotifyArduino *spotifyObj) {
 bool handleTouched() {
   previousTrackStatus = false;
   nextTrackStatus = false;
+  devicesStatus = false;
   //if (ts.tirqTouched() && ts.touched()) {
   if (ts.touched()) {
     CYD28_TS_Point p = ts.getPointScaled();
@@ -45,15 +48,42 @@ bool handleTouched() {
     Serial.println();
     if (p.x < 120) {
       previousTrackStatus = true;
-      //spotify_touch->previousTrack();
       return true;
     } else if (p.x > 200) {
-      nextTrackStatus = true;
-      //spotify_touch->nextTrack();
-      return true;
+      if(p.y < 40) {
+        devicesStatus = true;
+        return true;
+      } else if (p.y > 50) {
+        nextTrackStatus = true;
+        return true;
+      }
     }
   }
 
   return false;
 
+}
+
+bool handleTouchedDevice() {
+  deviceIndex = -1;
+
+  if (ts.touched()) {
+    CYD28_TS_Point p = ts.getPointScaled();
+    Serial.print("Pressure = ");
+    Serial.print(p.z);
+    Serial.print(", x = ");
+    Serial.print(p.x);
+    Serial.print(", y = ");
+    Serial.print(p.y);
+    delay(30);
+    Serial.println();
+
+    int index = (p.y + 16) / 40.0;
+
+    deviceIndex = index - 1;
+
+    return true;
+  }
+
+  return false;
 }

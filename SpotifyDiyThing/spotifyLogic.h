@@ -9,6 +9,7 @@ long songDuration;
 
 char lastTrackUri[200];
 char lastTrackContextUri[200];
+const char* devices[5];
 
 // You might want to make this much smaller, so it will update responsively
 
@@ -115,6 +116,8 @@ void updateCurrentlyPlaying(boolean forceUpdate)
 {
   if (forceUpdate || millis() > requestDueTime)
   {
+    Serial.println("n3rd - updateCurrentlyPlaying");
+
     if (forceUpdate)
     {
       Serial.println("forcing an update");
@@ -149,6 +152,10 @@ void updateCurrentlyPlaying(boolean forceUpdate)
       songStartMillis = 0;
       Serial.println("Doesn't seem to be anything playing");
     }
+    else if (status == 429)
+    {
+      Serial.println("n3rd - rate limit response");
+    }
     else
     {
       Serial.print("Error: ");
@@ -156,5 +163,44 @@ void updateCurrentlyPlaying(boolean forceUpdate)
     }
 
     requestDueTime = millis() + delayBetweenRequests;
+  }
+}
+
+bool handleShowDevice(SpotifyDevice device, int index, int numDevices)
+{
+  Serial.print(F("handleShowDevice - "));
+  Serial.print(device.name);
+  Serial.print(F(" - "));
+  Serial.println(device.id);
+  if(index < 6) {
+    devices[index] = device.id;
+    sp_Display->drawDevice(index, device.name, false);
+  }
+  return true;
+}
+
+void showDevices()
+{
+  int status = spotify.getDevices(handleShowDevice);
+  if (status == 200)
+  {
+    Serial.println(F("Successfully retreived devices"));
+    
+  }
+  else
+  {
+    Serial.print("Error: ");
+    Serial.println(status);
+  }
+}
+
+void selectDevice(int index)
+{
+  if(index > -1) {
+    Serial.print(F("Select Device: "));
+    Serial.print(index);
+    Serial.print(F(" - "));
+    Serial.println(devices[index]);
+    spotify.transferPlayback(devices[index], true);
   }
 }

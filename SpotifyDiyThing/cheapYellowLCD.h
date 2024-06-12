@@ -91,7 +91,7 @@ public:
   {
     tft.fillScreen(TFT_BLACK);
 
-    drawTouchButtons(false, false);
+    drawTouchButtons(false, false, false);
   }
 
   void displayTrackProgress(long progress, long duration)
@@ -136,7 +136,7 @@ public:
   {
     if (millis() > touchScreenCoolDownTime && handleTouched())
     {
-      drawTouchButtons(previousTrackStatus, nextTrackStatus);
+      drawTouchButtons(previousTrackStatus, nextTrackStatus, devicesStatus);
       if (previousTrackStatus)
       {
         spotify_display->previousTrack();
@@ -145,10 +145,39 @@ public:
       {
         spotify_display->nextTrack();
       }
-      drawTouchButtons(false, false);
+      else if(devicesStatus) 
+      {
+        showDeviceScreen();
+        showDevices();
+      }
+
+      if(!devicesStatus) {
+        drawTouchButtons(false, false, false);
+      }
+
       requestDueTime = 0;                                               // Some button has been pressed and acted on, it surely impacts the status so force a refresh
       touchScreenCoolDownTime = millis() + touchScreenCoolDownInterval; // Cool the touch off
     }
+  }
+
+  int checkDeviceInput()
+  {
+    if (millis() > touchScreenCoolDownTime && handleTouchedDevice())
+    {
+
+      if(deviceIndex > -1)
+      {
+        drawDevice(deviceIndex, "", true);
+      }
+
+      requestDueTime = 0;                                               // Some button has been pressed and acted on, it surely impacts the status so force a refresh
+      touchScreenCoolDownTime = millis() + touchScreenCoolDownInterval; // Cool the touch off
+    }
+
+    int result = deviceIndex;
+    // alway reset so we don't repeat the action
+    deviceIndex = -1;
+    return result;
   }
 
   // Image Related
@@ -239,6 +268,33 @@ public:
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
   }
 
+  void showDeviceScreen()
+  {
+    Serial.println("Show device screen");
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.drawCentreString("Devices:", screenCenterX, 5, 2);
+  }
+
+  void drawDevice(int index, const char* name, bool active)
+  {
+    int y = 40 * (index + 1);
+    int x = 50;
+
+    // Draw back Button
+    tft.fillCircle(x, y, 16, TFT_BLACK);
+    tft.drawCircle(x, y, 16, TFT_WHITE);
+    if (active)
+    {
+      tft.fillCircle(x, y, 15, TFT_GREEN);
+    }
+    tft.drawNumber(index + 1, x, y);
+
+    if(*name != '\0') {
+      tft.drawString(name, (x + 25), y);
+    }
+  }
+
 private:
   unsigned long touchScreenCoolDownInterval = 200; // How long after a touch press do we accept another (0.2 seconds). There is also an APi request inbetween
   unsigned long touchScreenCoolDownTime;           // time when cool down has expired
@@ -301,7 +357,7 @@ private:
     return decodeStatus;
   }
 
-  void drawTouchButtons(bool backStatus, bool forwardStatus)
+  void drawTouchButtons(bool backStatus, bool forwardStatus, bool devicesStatus)
   {
 
     int buttonCenterY = 75;
@@ -337,5 +393,13 @@ private:
 
     tft.fillTriangle(rightButtonCenterX + 4, buttonCenterY, rightButtonCenterX - 6, buttonCenterY - 10, rightButtonCenterX - 6, buttonCenterY + 10, TFT_WHITE);
     tft.drawRect(rightButtonCenterX + 6, buttonCenterY - 10, 2, 20, TFT_WHITE);
+
+    // draw devices button
+    tft.fillCircle(rightButtonCenterX, 15, 2, TFT_WHITE);
+    tft.fillCircle(rightButtonCenterX, 30, 8, TFT_WHITE);
+    if(devicesStatus) {
+      tft.fillRect(rightButtonCenterX -15, 5, 30, 40, TFT_GREEN);
+    }
+    tft.drawRect(rightButtonCenterX -15, 5, 30, 40, TFT_WHITE);
   }
 };
