@@ -25,7 +25,7 @@
 #define YELLOW_DISPLAY // Default to Yellow Display for display type
 #endif
 
-//#define NFC_ENABLED 1
+#define NFC_ENABLED 1
 
 // This causes issues in certain circumstances e.g. Play an album and let it auto play to related songs
 bool writeContextToNfc = true;
